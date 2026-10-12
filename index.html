@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GT Fanmade</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#05070a">
+  <title>Apex Drive</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
@@ -44,11 +46,31 @@
     <div id="wrongway" class="hidden">WRONG WAY</div>
   </div>
 
+  <!-- On-screen controls (touch devices) -->
+  <div id="touch">
+    <div class="pad steer">
+      <button class="tbtn round" data-ctl="left" aria-label="Steer left">&#9664;</button>
+      <button class="tbtn round" data-ctl="right" aria-label="Steer right">&#9654;</button>
+    </div>
+    <div class="pad pedals">
+      <button class="tbtn round brake" data-ctl="brake" aria-label="Brake">BRAKE</button>
+      <button class="tbtn round gas" data-ctl="throttle" aria-label="Accelerate">GAS</button>
+    </div>
+    <div class="pad aux">
+      <button class="tbtn pill" data-ctl="handbrake" aria-label="Handbrake">DRIFT</button>
+      <button class="tbtn pill" data-press="KeyR" aria-label="Reset car">RESET</button>
+      <button class="tbtn pill" data-press="KeyC" aria-label="Change camera">CAM</button>
+      <button class="tbtn pill" data-press="Escape" aria-label="Pause">&#10073;&#10073;</button>
+    </div>
+  </div>
+
+  <div id="rotate">&#8635; ROTATE YOUR DEVICE FOR A WIDER VIEW</div>
+
   <!-- Title / garage menu -->
   <div id="menu" class="hidden">
     <div class="menu-panel">
-      <div class="logo"><span class="gt">GT</span><span class="fan">FANMADE</span></div>
-      <div class="tagline">An unofficial fan-made racing tribute</div>
+      <div class="logo"><span class="mark">APEX</span><span class="sub">DRIVE</span></div>
+      <div class="tagline">An original browser racing game</div>
 
       <h3>Mode</h3>
       <div class="modes">
@@ -64,10 +86,15 @@
 
       <button id="start-btn">Start</button>
 
-      <div class="help">
+      <div class="help keys">
         <b>↑ / W</b> accelerate · <b>↓ / S</b> brake / reverse · <b>← → / A D</b> steer<br>
         <b>Space</b> handbrake · <b>C</b> camera · <b>R</b> reset car · <b>M</b> mute · <b>P / Esc</b> pause<br>
         Gamepad: left stick steer, RT throttle, LT brake, B handbrake
+      </div>
+      <div class="help touch-only">
+        <b>GAS / BRAKE</b> bottom right · <b>◀ ▶</b> bottom left — hold both pedals off to coast.<br>
+        <b>DRIFT</b> handbrake · <b>RESET</b> back on track · <b>CAM</b> view · <b>❙❙</b> pause.<br>
+        Turn the phone sideways for the best view.
       </div>
     </div>
     <div class="car-info">

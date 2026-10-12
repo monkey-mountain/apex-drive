@@ -300,7 +300,7 @@ export class Track {
       post.castShadow = true;
       g.add(post);
     }
-    const beamTex = textBoard('GT FANMADE · START', '#b30000', '#ffffff', 1024, 96);
+    const beamTex = textBoard('APEX DRIVE · START', '#b30000', '#ffffff', 1024, 96);
     const beam = new THREE.Mesh(new THREE.BoxGeometry(span + 0.6, 1.6, 0.8),
       [steel, steel, steel, steel, new THREE.MeshStandardMaterial({ map: beamTex, emissive: 0x220000 }), new THREE.MeshStandardMaterial({ map: beamTex, emissive: 0x220000 })]);
     beam.position.y = 7.6;

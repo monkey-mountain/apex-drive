@@ -7,6 +7,34 @@ export function formatTime(t) {
   return `${m}:${s.toFixed(3).padStart(6, '0')}`;
 }
 
+// The display fonts have proportional digits, so a plain textContent update makes
+// a running clock jitter sideways. Every character gets its own fixed-width cell
+// instead, which pins each digit to the same spot whatever its value.
+function setDigits(el, str) {
+  if (el._str === str) return;
+  if (el.childElementCount !== str.length) {
+    el.textContent = '';
+    for (const ch of str) {
+      const sp = document.createElement('span');
+      sp.className = ch === ':' || ch === '.' ? 'cell sep' : 'cell';
+      sp.textContent = ch;
+      el.appendChild(sp);
+    }
+  } else {
+    const prev = el._str || '';
+    for (let i = 0; i < str.length; i++) {
+      if (prev[i] === str[i]) continue;
+      const sp = el.children[i];
+      sp.className = str[i] === ':' || str[i] === '.' ? 'cell sep' : 'cell';
+      sp.textContent = str[i];
+    }
+  }
+  el._str = str;
+}
+
+// Right-aligned in a fixed number of cells, so "9" -> "99" -> "199" never shifts.
+const padCells = (str, n) => str.padStart(n, ' ');
+
 export class HUD {
   constructor(track) {
     this.track = track;
@@ -23,7 +51,10 @@ export class HUD {
     this.lastTach = -1;
   }
 
-  show(v) { this.root.classList.toggle('hidden', !v); }
+  show(v) {
+    this.root.classList.toggle('hidden', !v);
+    $('touch')?.classList.toggle('active', !!v);
+  }
 
   prepMinimap() {
     const b = this.track.bounds;
@@ -117,10 +148,10 @@ export class HUD {
     e.posOf.textContent = `/${total}`;
     e.lap.textContent = Math.max(1, Math.min(lap, laps || lap));
     e.lapOf.textContent = laps ? `/${laps}` : '';
-    e.cur.textContent = formatTime(cur);
-    e.last.textContent = formatTime(last);
-    e.best.textContent = formatTime(best);
-    e.spd.textContent = Math.round(car.speed * 3.6);
+    setDigits(e.cur, padCells(formatTime(cur), 9));
+    setDigits(e.last, padCells(formatTime(last), 9));
+    setDigits(e.best, padCells(formatTime(best), 9));
+    setDigits(e.spd, padCells(String(Math.round(car.speed * 3.6)), 3));
     e.gear.textContent = car.reverse ? 'R' : car.speed < 0.5 && car.throttle === 0 ? 'N' : String(car.gear + 1);
     e.gear.style.color = car.rpm > car.spec.redline * 0.93 ? '#ff3b30' : '#fff';
     e.wrong.classList.toggle('hidden', !wrongWay);

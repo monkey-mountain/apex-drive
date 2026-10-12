@@ -6,7 +6,7 @@ import { buildCarModel, disposeModel } from './carModel.js';
 import { AIDriver } from './ai.js';
 import { AudioEngine } from './audio.js';
 import { HUD, formatTime } from './hud.js';
-import { Input } from './input.js';
+import { Input, isTouchDevice } from './input.js';
 import { SkidMarks, Smoke } from './fx.js';
 
 const $ = (id) => document.getElementById(id);
@@ -20,8 +20,10 @@ const CAM_MODES = [['chase', 'CHASE CAM'], ['far', 'FAR CHASE'], ['hood', 'HOOD 
 
 // ───────────── renderer / scene ─────────────
 const canvas = $('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const MOBILE = isTouchDevice();
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: !MOBILE, powerPreference: 'high-performance' });
+// Phones have dense screens and small GPUs: render fewer pixels so the frame rate holds.
+renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.62;
@@ -56,7 +58,7 @@ scene.fog = new THREE.Fog(0xb9cde0, 400, 2800);
 scene.add(new THREE.HemisphereLight(0xd6e8ff, 0x4b5a3b, 0.9));
 const sun = new THREE.DirectionalLight(0xfff0dc, 3.2);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.mapSize.setScalar(MOBILE ? 1024 : 2048);
 Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 1, far: 500 });
 sun.shadow.bias = -0.0004;
 sun.shadow.normalBias = 0.04;
@@ -85,7 +87,16 @@ const storage = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* ignore */ } },
 };
-camMode = storage.get('gtf-cam') ?? 0;
+// Settings and best laps saved by earlier builds used another prefix: move them over once.
+try {
+  for (const k of Object.keys(localStorage)) {
+    if (!k.startsWith('gtf-')) continue;
+    const next = `apex-${k.slice(4)}`;
+    if (localStorage.getItem(next) == null) localStorage.setItem(next, localStorage.getItem(k));
+    localStorage.removeItem(k);
+  }
+} catch { /* ignore */ }
+camMode = storage.get('apex-cam') ?? 0;
 
 // ───────────── menu ─────────────
 function buildMenu() {
@@ -128,7 +139,7 @@ function refreshMenu() {
   const st = carStats(spec);
   $('car-name').textContent = spec.name;
   $('car-desc').textContent = spec.desc;
-  const best = storage.get(`gtf-best-${spec.id}`);
+  const best = storage.get(`apex-best-${spec.id}`);
   const rows = [
     ['Power', st.hp / 550, `${st.hp} hp`],
     ['Weight', 1 - (st.kg - 1000) / 800, `${st.kg} kg`],
@@ -167,9 +178,18 @@ function clearRace() {
   track.setStartLights(0);
 }
 
+// Touch play is much better with the browser chrome out of the way; both calls are
+// best-effort and a refusal (or an orientation lock the device won't do) is fine.
+function goImmersive() {
+  if (!document.documentElement.classList.contains('touch') || document.fullscreenElement) return;
+  const req = document.documentElement.requestFullscreen?.({ navigationUI: 'hide' });
+  Promise.resolve(req).then(() => screen.orientation?.lock?.('landscape')).catch(() => {});
+}
+
 function startRace() {
   audio.init();
   audio.resume();
+  goImmersive();
   clearRace();
   if (showroom) { disposeModel(showroom); showroom = null; }
   camera.clearViewOffset();
@@ -197,7 +217,7 @@ function startRace() {
     }
   }
   racers = [player, ...ais];
-  player.bestLap = solo ? storage.get(`gtf-best-${spec.id}`) : null;
+  player.bestLap = solo ? storage.get(`apex-best-${spec.id}`) : null;
   audio.setOpponents(ais);
 
   cam.heading = player.heading;
@@ -229,7 +249,7 @@ input.onPress = (code) => {
     if ($('results').classList.contains('hidden')) togglePause();
   } else if (code === 'KeyC' && player) {
     camMode = (camMode + 1) % CAM_MODES.length;
-    storage.set('gtf-cam', camMode);
+    storage.set('apex-cam', camMode);
     hud.camLabel(CAM_MODES[camMode][1]);
   } else if (code === 'KeyM') {
     audio.setMuted(!audio.muted);
@@ -288,7 +308,7 @@ function checkPlayerLap(prevIdx) {
         if (isBest) {
           player.bestLap = t;
           if (state.mode === 'trial') {
-            storage.set(`gtf-best-${player.spec.id}`, t);
+            storage.set(`apex-best-${player.spec.id}`, t);
           }
         }
         if (state.mode === 'race' && player.lap > TOTAL_LAPS) return finishRace();
@@ -532,7 +552,7 @@ $('loading').classList.add('hidden');
 requestAnimationFrame(frame);
 
 // handy for debugging from the console
-window.__gtf = {
+window.__apex = {
   state, track, startRace,
   get player() { return player; },
   get ais() { return ais; },
