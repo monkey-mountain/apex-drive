@@ -114,12 +114,15 @@ button { font-family: var(--ui); cursor: pointer; }
   padding: 34px 34px 24px; overflow-y: auto;
   background: linear-gradient(90deg, rgba(5,7,10,.94) 0%, rgba(5,7,10,.86) 75%, rgba(5,7,10,0) 100%);
 }
-.logo { display: flex; align-items: baseline; gap: 10px; }
-.logo .gt {
-  font-family: var(--num); font-weight: 900; font-style: italic; font-size: 76px; line-height: .9;
-  background: linear-gradient(180deg, #ff3b30, #b00000); -webkit-background-clip: text; background-clip: text; color: transparent;
+.logo { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.logo .mark {
+  font-family: var(--num); font-weight: 900; font-size: 62px; line-height: .95; letter-spacing: .04em;
+  color: var(--fg); text-shadow: 0 2px 18px rgba(0, 0, 0, .55);
 }
-.logo .fan { font-family: var(--num); font-weight: 500; font-size: 26px; letter-spacing: .32em; }
+.logo .sub {
+  font-family: var(--num); font-weight: 500; font-size: 22px; letter-spacing: .52em;
+  color: var(--accent); padding-left: .18em;
+}
 .tagline { color: var(--muted); margin-top: 6px; letter-spacing: .08em; }
 
 .menu-panel h3 {
@@ -258,7 +261,7 @@ html.touch #banner { font-size: 64px; top: 26%; }
 html.touch #banner.small { font-size: 34px; }
 html.touch #wrongway { font-size: 20px; top: 15%; padding: 5px 16px; }
 html.touch .menu-panel { padding: 20px 20px 18px; }
-html.touch .logo .gt { font-size: 56px; }
+html.touch .logo .mark { font-size: 46px; }
 html.touch .box { padding: 20px 22px; }
 
 @media (max-width: 760px) {
@@ -273,8 +276,8 @@ html.touch .box { padding: 20px 22px; }
   html.touch #meter { transform: scale(.38); bottom: -10px; }
   html.touch #minimap { width: 86px; height: 86px; margin-left: -43px; }
   html.touch .menu-panel { width: min(600px, 100%); padding: 14px 18px 14px; }
-  html.touch .logo .gt { font-size: 40px; }
-  html.touch .logo .fan { font-size: 18px; }
+  html.touch .logo .mark { font-size: 34px; }
+  html.touch .logo .sub { font-size: 16px; letter-spacing: .4em; }
   html.touch .tagline { font-size: 12px; margin-top: 2px; }
   html.touch .menu-panel h3 { margin: 10px 0 5px; font-size: 11px; padding-bottom: 3px; }
   html.touch .mode, html.touch .car-card { padding: 6px 10px; font-size: 14px; }

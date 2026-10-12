@@ -87,7 +87,16 @@ const storage = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* ignore */ } },
 };
-camMode = storage.get('gtf-cam') ?? 0;
+// Settings and best laps saved by earlier builds used another prefix: move them over once.
+try {
+  for (const k of Object.keys(localStorage)) {
+    if (!k.startsWith('gtf-')) continue;
+    const next = `apex-${k.slice(4)}`;
+    if (localStorage.getItem(next) == null) localStorage.setItem(next, localStorage.getItem(k));
+    localStorage.removeItem(k);
+  }
+} catch { /* ignore */ }
+camMode = storage.get('apex-cam') ?? 0;
 
 // ───────────── menu ─────────────
 function buildMenu() {
@@ -130,7 +139,7 @@ function refreshMenu() {
   const st = carStats(spec);
   $('car-name').textContent = spec.name;
   $('car-desc').textContent = spec.desc;
-  const best = storage.get(`gtf-best-${spec.id}`);
+  const best = storage.get(`apex-best-${spec.id}`);
   const rows = [
     ['Power', st.hp / 550, `${st.hp} hp`],
     ['Weight', 1 - (st.kg - 1000) / 800, `${st.kg} kg`],
@@ -208,7 +217,7 @@ function startRace() {
     }
   }
   racers = [player, ...ais];
-  player.bestLap = solo ? storage.get(`gtf-best-${spec.id}`) : null;
+  player.bestLap = solo ? storage.get(`apex-best-${spec.id}`) : null;
   audio.setOpponents(ais);
 
   cam.heading = player.heading;
@@ -240,7 +249,7 @@ input.onPress = (code) => {
     if ($('results').classList.contains('hidden')) togglePause();
   } else if (code === 'KeyC' && player) {
     camMode = (camMode + 1) % CAM_MODES.length;
-    storage.set('gtf-cam', camMode);
+    storage.set('apex-cam', camMode);
     hud.camLabel(CAM_MODES[camMode][1]);
   } else if (code === 'KeyM') {
     audio.setMuted(!audio.muted);
@@ -299,7 +308,7 @@ function checkPlayerLap(prevIdx) {
         if (isBest) {
           player.bestLap = t;
           if (state.mode === 'trial') {
-            storage.set(`gtf-best-${player.spec.id}`, t);
+            storage.set(`apex-best-${player.spec.id}`, t);
           }
         }
         if (state.mode === 'race' && player.lap > TOTAL_LAPS) return finishRace();
@@ -543,7 +552,7 @@ $('loading').classList.add('hidden');
 requestAnimationFrame(frame);
 
 // handy for debugging from the console
-window.__gtf = {
+window.__apex = {
   state, track, startRace,
   get player() { return player; },
   get ais() { return ais; },

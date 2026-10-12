@@ -17,7 +17,7 @@ export const CARS = [
     gears: [2.9, 1.95, 1.45, 1.15, 0.92, 0.75], final: 3.6, wheelbase: 2.75,
   },
   {
-    id: 'mistral', name: 'Mistral GT-P', desc: 'Aero prototype. Glued to the tarmac.', style: 'proto', color: 0xf2b705,
+    id: 'mistral', name: 'Mistral SP', desc: 'Aero prototype. Glued to the tarmac.', style: 'proto', color: 0xf2b705,
     torque: 410, mass: 1260, grip: 1.2, downforce: 1.25, redline: 9000, idle: 1100, drag: 0.43, cyl: 6,
     gears: [3.2, 2.15, 1.6, 1.28, 1.05, 0.88], final: 3.9, wheelbase: 2.65,
   },
