@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { G, carStats } from './car.js';
+import { G, LAT_GRIP, carStats } from './car.js';
 import { WHEEL_R } from './carModel.js';
 
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -54,7 +54,7 @@ export class AIDriver {
     const i = ((Math.floor(this.s) % N) + N) % N;
 
     // ── target speed from curvature ahead ──
-    const aLat = (this.spec.grip * G + (this.spec.downforce * this.v * this.v) / this.spec.mass) * 0.8 * this.skill;
+    const aLat = (this.spec.grip * G + (this.spec.downforce * this.v * this.v) / this.spec.mass) * LAT_GRIP * 0.8 * this.skill;
     const aBrake = 7.5 * this.skill;
     let target = this.vmax;
     for (let k = 0; k <= 100; k += 3) {

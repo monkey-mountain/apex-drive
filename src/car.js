@@ -35,11 +35,20 @@ export function carStats(spec) {
   return { hp: Math.round(hp), kg: spec.mass, top: Math.round(top * 3.6 * 0.98), grip: spec.grip };
 }
 
+// Off-road is slower than tarmac, but never a trap: a car that drops a wheel on
+// the grass or runs through a gravel bed must still be able to drive itself back.
 const SURFACE = {
   road: { grip: 1, roll: 0.015 },
-  sand: { grip: 0.5, roll: 0.22 },
-  grass: { grip: 0.6, roll: 0.09 },
+  sand: { grip: 0.72, roll: 0.1 },
+  grass: { grip: 0.86, roll: 0.05 },
 };
+
+// Arcade handling: the tyres bite harder sideways than a textbook grip circle
+// would allow, so the tight corners can be taken without a perfect braking point.
+export const LAT_GRIP = 1.38;
+const YAW_AUTHORITY = 1.25;
+const STEER_LOCK = 0.7;    // ~40 deg of front-wheel lock, reachable below 30 km/h
+const STEER_RATE = 5.5;    // rad/s the steering rack can move
 
 export class Car {
   constructor(spec, model, name = 'YOU') {
@@ -126,11 +135,12 @@ export class Car {
     this.surface = absLat < track.half + 1.4 ? 'road' : track.corner[pr.index] && absLat < track.half + 7 ? 'sand' : 'grass';
     const surf = SURFACE[this.surface];
     const gripAcc = (s.grip * G + (s.downforce * vLong * vLong) / s.mass) * surf.grip;
+    const latAcc = gripAcc * LAT_GRIP;
 
     // ── steering: full lock sits just past the grip limit, so holding a key doesn't plough ──
-    const gripLock = Math.atan((s.wheelbase * gripAcc * 1.18) / Math.max(speed * speed, 1));
-    const maxSteer = Math.min(0.6, gripLock * (input.handbrake ? 2.2 : 1));
-    this.steer += clamp(input.steer * maxSteer - this.steer, -3 * dt, 3 * dt);
+    const gripLock = Math.atan((s.wheelbase * latAcc * 1.5) / Math.max(speed * speed, 1));
+    const maxSteer = Math.min(STEER_LOCK, gripLock * (input.handbrake ? 2.2 : 1));
+    this.steer += clamp(input.steer * maxSteer - this.steer, -STEER_RATE * dt, STEER_RATE * dt);
 
     // ── pedals / direction ──
     let throttle = input.throttle, brake = input.brake, braking = 0;
@@ -199,7 +209,7 @@ export class Car {
     this.braking = braking;
 
     // ── lateral grip ──
-    const latGrip = gripAcc * (input.handbrake ? 0.32 : 1) * (this.wheelSpin > 0.3 ? 0.72 : 1);
+    const latGrip = latAcc * (input.handbrake ? 0.32 : 1) * (this.wheelSpin > 0.3 ? 0.72 : 1);
     const maxDv = latGrip * dt;
     const dvLat = clamp(-vLat, -maxDv, maxDv);
     vLat += dvLat;
@@ -207,7 +217,7 @@ export class Car {
 
     // ── yaw ──
     const rawYaw = (vLong * Math.tan(this.steer)) / s.wheelbase;
-    const yawMax = (gripAcc * (input.handbrake ? 1.9 : 1.0)) / Math.max(Math.abs(vLong), 4);
+    const yawMax = (latAcc * YAW_AUTHORITY * (input.handbrake ? 1.9 : 1.0)) / Math.max(Math.abs(vLong), 4);
     const yawT = clamp(rawYaw, -yawMax, yawMax);
     const understeer = Math.max(0, Math.abs(rawYaw) - yawMax) / yawMax;
     this.yawRate += (yawT - this.yawRate) * Math.min(1, dt * 10);

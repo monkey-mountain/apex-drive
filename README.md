@@ -27,6 +27,9 @@ there are no asset files: every model, texture and sound is generated in code.
 - **4 camera views**: chase, far chase, hood and bumper.
 - **Effects**: skid marks and tyre smoke or dirt spray.
 - **Gamepad support**.
+- **Touch controls**: on phones and tablets the HUD rearranges itself and on-screen
+  pedals, steering and shortcut buttons appear; the race goes fullscreen (landscape
+  where the device allows it).
 
 ## Play locally
 
@@ -42,16 +45,19 @@ You can also host it on **GitHub Pages**: go to *Settings → Pages → Deploy f
 
 ## Controls
 
-| Action | Keyboard | Gamepad |
-| --- | --- | --- |
-| Accelerate | ↑ / W | RT |
-| Brake / reverse | ↓ / S | LT |
-| Steer | ← → / A D | Left stick |
-| Handbrake | Space | B |
-| Change camera | C | Y |
-| Reset car to track | R | Back |
-| Pause | P / Esc | Start |
-| Mute | M | |
+| Action | Keyboard | Gamepad | Touch |
+| --- | --- | --- | --- |
+| Accelerate | ↑ / W | RT | GAS (bottom right) |
+| Brake / reverse | ↓ / S | LT | BRAKE (bottom right) |
+| Steer | ← → / A D | Left stick | ◀ ▶ (bottom left) |
+| Handbrake | Space | B | DRIFT |
+| Change camera | C | Y | CAM |
+| Reset car to track | R | Back | RESET |
+| Pause | P / Esc | Start | ❙❙ |
+| Mute | M | | |
+
+Touch buttons can be held together and a finger may slide from one to another,
+so GAS + steering (or trail-braking into a corner) works as you would expect.
 
 ## Project layout
 
@@ -65,6 +71,6 @@ src/carModel.js procedural car meshes
 src/ai.js       AI opponents (curvature-based speed planning + overtaking)
 src/audio.js    Web Audio synthesis
 src/hud.js      HUD, tachometer and minimap
-src/input.js    keyboard and gamepad
+src/input.js    keyboard, gamepad and on-screen touch controls
 src/fx.js       skid marks and smoke
 ```

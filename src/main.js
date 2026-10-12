@@ -6,7 +6,7 @@ import { buildCarModel, disposeModel } from './carModel.js';
 import { AIDriver } from './ai.js';
 import { AudioEngine } from './audio.js';
 import { HUD, formatTime } from './hud.js';
-import { Input } from './input.js';
+import { Input, isTouchDevice } from './input.js';
 import { SkidMarks, Smoke } from './fx.js';
 
 const $ = (id) => document.getElementById(id);
@@ -20,8 +20,10 @@ const CAM_MODES = [['chase', 'CHASE CAM'], ['far', 'FAR CHASE'], ['hood', 'HOOD 
 
 // ───────────── renderer / scene ─────────────
 const canvas = $('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const MOBILE = isTouchDevice();
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: !MOBILE, powerPreference: 'high-performance' });
+// Phones have dense screens and small GPUs: render fewer pixels so the frame rate holds.
+renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.62;
@@ -56,7 +58,7 @@ scene.fog = new THREE.Fog(0xb9cde0, 400, 2800);
 scene.add(new THREE.HemisphereLight(0xd6e8ff, 0x4b5a3b, 0.9));
 const sun = new THREE.DirectionalLight(0xfff0dc, 3.2);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.mapSize.setScalar(MOBILE ? 1024 : 2048);
 Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 1, far: 500 });
 sun.shadow.bias = -0.0004;
 sun.shadow.normalBias = 0.04;
@@ -167,9 +169,18 @@ function clearRace() {
   track.setStartLights(0);
 }
 
+// Touch play is much better with the browser chrome out of the way; both calls are
+// best-effort and a refusal (or an orientation lock the device won't do) is fine.
+function goImmersive() {
+  if (!document.documentElement.classList.contains('touch') || document.fullscreenElement) return;
+  const req = document.documentElement.requestFullscreen?.({ navigationUI: 'hide' });
+  Promise.resolve(req).then(() => screen.orientation?.lock?.('landscape')).catch(() => {});
+}
+
 function startRace() {
   audio.init();
   audio.resume();
+  goImmersive();
   clearRace();
   if (showroom) { disposeModel(showroom); showroom = null; }
   camera.clearViewOffset();
